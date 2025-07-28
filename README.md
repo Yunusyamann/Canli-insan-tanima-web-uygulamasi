@@ -4,8 +4,6 @@ Bu proje, Django, Celery ve WebSockets kullanarak web arayüzü üzerinden gerç
 
 Proje, yoğun işlem gücü gerektiren görüntü işleme görevlerini web sunucusundan ayırarak ölçeklenebilir ve performanslı bir mimari sunar.
 
-![Proje Ekran Görüntüsü](https://i.hizliresim.com/p14w2k9.png)
-*(Projenin çalışan bir halinin ekran görüntüsünü veya GIF'ini buraya ekleyebilirsiniz.)*
 
 ## Kullanılan Teknolojiler
 
