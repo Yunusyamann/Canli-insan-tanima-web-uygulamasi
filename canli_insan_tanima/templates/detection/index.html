@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canlı İnsan Tanıma</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; color: #1c1e21; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        h1 { color: #0d6efd; }
+        #container { display: flex; flex-direction: column; align-items: center; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        #video-feed { border: 1px solid #ddd; border-radius: 8px; max-width: 800px; height: auto; background-color: #000; min-height: 480px; }
+        #controls { margin-top: 20px; }
+        button { font-size: 16px; padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; margin: 0 10px; transition: background-color 0.3s, opacity 0.3s; }
+        button:disabled { cursor: not-allowed; opacity: 0.6; }
+        #startButton { background-color: #28a745; color: white; }
+        #startButton:hover:not(:disabled) { background-color: #218838; }
+        #stopButton { background-color: #dc3545; color: white; }
+        #stopButton:hover:not(:disabled) { background-color: #c82333; }
+        #status-container { margin-top: 15px; font-size: 18px; font-weight: 500; } /* Değişti */
+        #count { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Canlı İnsan Tanıma Sistemi</h1>
+    <div id="container">
+        <img id="video-feed" src="" alt="Video Akışı Burada Gösterilecek">
+        <div id="controls">
+            <button id="startButton">Algılamayı Başlat</button>
+            <button id="stopButton" disabled>Durdur</button>
+        </div>
+        <div id="status-container">
+            <span id="status-text">Durum: Beklemede</span>
+            <span style="margin: 0 5px;">|</span>
+            <span>Algılanan İnsan Sayısı: <span id="count">0</span></span>
+        </div>
+    </div>
+
+    <script>
+        // --- DÜZELTİLMİŞ JAVASCRIPT ---
+        const videoFeed = document.getElementById('video-feed');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const statusText = document.getElementById('status-text'); // Değişti
+        const countSpan = document.getElementById('count');
+
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/detection/');
+
+        socket.onopen = function(e) {
+            console.log("WebSocket bağlantısı başarıyla kuruldu.");
+            statusText.textContent = "Durum: Bağlantı kuruldu, başlatmak için butona basın.";
+        };
+
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            // Bu iki satır artık birbirinden bağımsız ve sorunsuz çalışacak.
+            videoFeed.src = 'data:image/jpeg;base64,' + data.image;
+            countSpan.textContent = data.human_count;
+        };
+
+        socket.onclose = function(e) {
+            console.error('WebSocket bağlantısı kapandı.');
+            statusText.textContent = "Hata: Sunucuyla bağlantı kesildi. Sayfayı yenileyin.";
+            videoFeed.src = "";
+            countSpan.textContent = "0";
+            startButton.disabled = true;
+            stopButton.disabled = true;
+        };
+
+        startButton.addEventListener('click', function() {
+            if (socket.readyState === WebSocket.OPEN) {
+                console.log("Algılama başlatma komutu gönderiliyor...");
+                socket.send(JSON.stringify({ 'type': 'start_detection' }));
+                
+                statusText.textContent = "Durum: Algılama çalışıyor...";
+                startButton.disabled = true;
+                stopButton.disabled = false;
+            }
+        });
+
+        stopButton.addEventListener('click', function() {
+            if (socket.readyState === WebSocket.OPEN) {
+                console.log("Algılama durdurma komutu gönderiliyor...");
+                socket.send(JSON.stringify({ 'type': 'stop_detection' }));
+
+                statusText.textContent = "Durum: Durduruldu. Yeniden başlatabilirsiniz.";
+                startButton.disabled = false;
+                stopButton.disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>

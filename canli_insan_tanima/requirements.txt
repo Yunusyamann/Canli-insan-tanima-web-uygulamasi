@@ -1,0 +1,8 @@
+django
+celery
+redis
+channels
+channels-redis
+ultralytics
+opencv-python-headless
+numpy
